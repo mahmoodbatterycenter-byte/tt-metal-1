@@ -104,6 +104,9 @@ void NlpCreateHeadsDeviceOperation::validate_on_program_cache_miss(
     }
     if (input_tensor.is_sharded()) {
         TT_FATAL(
+            input_tensor.shard_spec().has_value(),
+            "nlp_create_qkv_heads: sharded input_tensor must have a legacy shard_spec (ND_SHARDED is not supported)");
+        TT_FATAL(
             input_tensor.shard_spec().value().shape[0] ==
                 input_tensor.physical_volume() / input_tensor.padded_shape()[-1],
             "Shard spec shape[0] ({}) must equal physical volume / padded shape[-1] ({})",
@@ -144,6 +147,10 @@ void NlpCreateHeadsDeviceOperation::validate_on_program_cache_miss(
             input_tensor.shard_spec().value().num_cores());
         if (tensor_args.input_tensor_kv.has_value()) {
             TT_FATAL(tensor_args.input_tensor_kv.value().is_sharded(), "Input tensor KV must be sharded");
+            TT_FATAL(
+                tensor_args.input_tensor_kv.value().shard_spec().has_value(),
+                "nlp_create_qkv_heads: sharded input_tensor_kv must have a legacy shard_spec (ND_SHARDED is not "
+                "supported)");
             TT_FATAL(
                 input_tensor.shard_spec().value().grid == tensor_args.input_tensor_kv.value().shard_spec().value().grid,
                 "Input tensor and KV tensor must have the same shard grid");

@@ -33,6 +33,10 @@ void NlpCreateHeadsBoltzDeviceOperation::validate_on_program_cache_miss(
     TT_FATAL(input_shape[2] % TILE_HEIGHT == 0, "Unsupported input height {} is not tile aligned", input_shape[2]);
     if (input_tensor.is_sharded()) {
         TT_FATAL(
+            input_tensor.shard_spec().has_value(),
+            "nlp_create_qkv_heads_boltz: sharded input_tensor must have a legacy shard_spec (ND_SHARDED is not "
+            "supported)");
+        TT_FATAL(
             input_tensor.shard_spec().value().shape[0] ==
                 input_tensor.logical_shape().volume() / input_tensor.padded_shape()[-1],
             "Shard spec shape[0] ({}) must equal logical volume / padded shape[-1] ({})",
@@ -126,6 +130,10 @@ void NlpCreateHeadsBoltzDeviceOperation::validate_on_program_cache_miss(
         TT_FATAL(input_shape_kv[2] == input_shape[2], "KV tensor seq_len dim must be same as Q tensor seq_len!");
         if (input_tensor_kv.is_sharded()) {
             TT_FATAL(input_tensor.is_sharded(), "Input tensor must be sharded when KV tensor is sharded");
+            TT_FATAL(
+                input_tensor_kv.shard_spec().has_value(),
+                "nlp_create_qkv_heads_boltz: sharded input_tensor_kv must have a legacy shard_spec (ND_SHARDED is "
+                "not supported)");
             TT_FATAL(
                 input_tensor_kv.shard_spec().value().shape[0] ==
                     input_tensor_kv.logical_shape().volume() / input_tensor_kv.padded_shape()[-1],
